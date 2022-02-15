@@ -1,6 +1,8 @@
-from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from datetime import datetime
+
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 
 
 class User(AbstractUser):
@@ -36,21 +38,70 @@ class User(AbstractUser):
         ]
 
 
+class Category(models.Model):
+    """Модель категорий (типы) произведений («Фильмы», «Книги», «Музыка»)"""
+
+    name = models.CharField(max_length=256, verbose_name='Имя категории')
+    slug = models.SlugField(max_length=50, verbose_name='Слаг категории')
+
+    def __str__(self):
+        return self.name
+
+
+class Genre(models.Model):
+    """Модель жанра произведения"""
+
+    name = models.CharField(max_length=256, verbose_name='Имя жанра')
+    slug = models.SlugField(max_length=50, verbose_name='Слаг жанра')
+
+    def __str__(self):
+        return self.name
+
 
 class Title(models.Model):
-    pass
+    """
+    Модель произведения, к которым пишут отзывы (определённый фильм, книга
+    или песенка)
+    """
+    name = models.CharField(max_length=500, verbose_name='Название')
+    year = models.PositiveIntegerField(verbose_name='Год выпуска',
+                                       blank=True, null=True,
+                                       validators=[
+                                           MinValueValidator(1000),
+                                           MaxValueValidator(
+                                               datetime.now().year)
+                                       ])
+    description = models.TextField(verbose_name='Описание')
+    genre = models.ManyToManyField(Genre,
+                                   related_name='titles',
+                                   verbose_name='Жанры произведения')
+    category = models.ForeignKey(Category,
+                                 related_name='titles',
+                                 on_delete=models.SET_NULL,
+                                 blank=True,
+                                 null=True,
+                                 verbose_name='Категория произведения')
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
     text = models.TextField(verbose_name='текст отзыва')
-    pub_date = models.DateTimeField(verbose_name='дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField(verbose_name='дата публикации',
+                                    auto_now_add=True)
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews', verbose_name='автор публикации')
+        User, on_delete=models.CASCADE, related_name='reviews',
+        verbose_name='автор публикации')
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
         related_name='reviews', verbose_name='наименование произведения'
     )
-    score = models.IntegerField(verbose_name='оценка произведения', validators = [MinValueValidator(1), MaxValueValidator(10)])
+    score = models.IntegerField(verbose_name='оценка произведения',
+                                validators=[
+                                    MinValueValidator(1),
+                                    MaxValueValidator(10)
+                                ])
 
     def __str__(self):
         return self.text
@@ -58,9 +109,11 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments', verbose_name='автор комментария')
+        User, on_delete=models.CASCADE, related_name='comments',
+        verbose_name='автор комментария')
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments', verbose_name='отзыв')
+        Review, on_delete=models.CASCADE, related_name='comments',
+        verbose_name='отзыв')
     text = models.TextField(verbose_name='текст комментария')
     pub_date = models.DateTimeField(
         verbose_name='дата публикации',
@@ -69,4 +122,3 @@ class Comment(models.Model):
     
     def __str__(self):
         return self.text
-
