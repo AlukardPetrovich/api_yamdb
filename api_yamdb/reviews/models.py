@@ -65,7 +65,6 @@ class Title(models.Model):
     """
     name = models.CharField(max_length=500, verbose_name='Название')
     year = models.PositiveIntegerField(verbose_name='Год выпуска',
-                                       blank=True, null=True,
                                        validators=[
                                            MinValueValidator(1000),
                                            MaxValueValidator(
@@ -78,7 +77,6 @@ class Title(models.Model):
     category = models.ForeignKey(Category,
                                  related_name='titles',
                                  on_delete=models.SET_NULL,
-                                 blank=True,
                                  null=True,
                                  verbose_name='Категория произведения')
 
