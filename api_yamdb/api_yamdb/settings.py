@@ -21,7 +21,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'reviews.apps.config'
+    'api.apps.config'
 ]
+
+AUTH_USER_MODEL = 'reviews.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
