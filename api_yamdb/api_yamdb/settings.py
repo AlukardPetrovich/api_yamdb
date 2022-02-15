@@ -21,8 +21,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'reviews.apps.config'
-    'api.apps.config'
+    'reviews.apps.ReviewsConfig',
+    'api.apps.ApiConfig',
 ]
 
 AUTH_USER_MODEL = 'reviews.User'
