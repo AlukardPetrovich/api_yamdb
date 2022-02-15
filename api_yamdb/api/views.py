@@ -1,6 +1,6 @@
 from rest_framework import viewsets
 from .serializers import (CommentSerializer, ReviewSerializer)
-from review.models import Review, Title
+from reviews.models import Review, Title
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.generics import get_object_or_404
 
