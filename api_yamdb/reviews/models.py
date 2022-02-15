@@ -1,8 +1,39 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.contrib.auth.models import AbstractUser
 
-User = get_user_model()
+class User(AbstractUser):
+
+    ANONIMUS = 'anon'
+    AUTHENTICATED = 'user'
+    MODERATOR = 'moder'
+    ADMINISTRATOR = 'admin'
+    SUPERUSER = 'root'
+    ROLE_CHOISES = [
+        (ANONIMUS, 'Аноним'),
+        (AUTHENTICATED, 'Аутентифицированный пользователь'),
+        (MODERATOR, 'Модератор'),
+        (ADMINISTRATOR, 'Администратор'),
+        (SUPERUSER, 'Суперюзер Django'),
+    ]
+    role = models.CharField(
+        max_length=5,
+        choices=ROLE_CHOISES,
+        default=AUTHENTICATED
+    ),
+    bio = models.TextField(
+        'Биография',
+        blank=True,
+    ),
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['username', 'email'],
+                name='unique_registration'
+            )
+        ]
+
 
 class Title(models.Model):
     pass
