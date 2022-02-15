@@ -6,6 +6,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор модели Review."""
     author = SlugRelatedField(slug_field='username', read_only=True)
     text = serializers.CharField(allow_blank=True, required=True)
+    # Возможно нужен Валидатор на проверку создания только 1 поста от 1 автора
 
     class Meta:
         fields = '__all__'

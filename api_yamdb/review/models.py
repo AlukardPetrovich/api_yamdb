@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 User = get_user_model()
 
@@ -8,15 +9,15 @@ class Title(models.Model):
 
 
 class Review(models.Model):
-    text = models.TextField()
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    text = models.TextField(verbose_name='текст отзыва')
+    pub_date = models.DateTimeField(verbose_name='дата публикации', auto_now_add=True)
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviews')
+        User, on_delete=models.CASCADE, related_name='reviews', verbose_name='автор публикации')
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
-        related_name='reviews'
+        related_name='reviews', verbose_name='наименование произведения'
     )
-    score = ... #Еще не придумал как реализовать. Думаю как поле ChoiseField. Работаю над этим вопросом
+    score = models.IntegerField(verbose_name='оценка произведения', validators = [MinValueValidator(1), MaxValueValidator(10)])
 
     def __str__(self):
         return self.text
@@ -24,13 +25,14 @@ class Review(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='comments')
+        User, on_delete=models.CASCADE, related_name='comments', verbose_name='автор комментария')
     review = models.ForeignKey(
-        Review, on_delete=models.CASCADE, related_name='comments')
-    text = models.TextField()
-    created = models.DateTimeField(
-        'Дата добавления', auto_now_add=True, db_index=True)
-    title = models.ForeignKey(
-        Title, on_delete=models.CASCADE,
-        related_name='reviews'
+        Review, on_delete=models.CASCADE, related_name='comments', verbose_name='отзыв')
+    text = models.TextField(verbose_name='текст комментария')
+    pub_date = models.DateTimeField(
+        verbose_name='дата публикации',
+        auto_now_add=True
     )
+    
+    def __str__(self):
+        return self.text
