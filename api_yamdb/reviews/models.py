@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 
+
 class User(AbstractUser):
 
     ANONIMUS = 'anon'
@@ -33,6 +34,7 @@ class User(AbstractUser):
                 name='unique_registration'
             )
         ]
+
 
 
 class Title(models.Model):
@@ -67,3 +69,4 @@ class Comment(models.Model):
     
     def __str__(self):
         return self.text
+
