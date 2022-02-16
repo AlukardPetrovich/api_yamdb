@@ -4,7 +4,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
-                             TitleSerializer)
+                             TitleCreateSerializer, TitleSerializer)
 from reviews.models import Category, Genre, Review, Title
 
 
@@ -82,3 +82,10 @@ class TitleViewSet(viewsets.ModelViewSet):
     """
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_serializer_class(self):
+        # в зависимости от действия выбираем тот или иной сериалайзер
+        if self.action == 'create':
+            return TitleCreateSerializer
+        return TitleSerializer
