@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # packages & libs
     'rest_framework',
+    'drf_yasg',
     # apps
     'reviews.apps.ReviewsConfig',
     'api.apps.ApiConfig',

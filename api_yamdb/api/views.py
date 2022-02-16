@@ -1,8 +1,11 @@
-from rest_framework import viewsets
-from .serializers import (CommentSerializer, ReviewSerializer)
-from reviews.models import Review, Title
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework import mixins, viewsets
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, ReviewSerializer,
+                             TitleSerializer)
+from reviews.models import Category, Genre, Review, Title
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -39,3 +42,40 @@ class CommentViewSet(viewsets.ModelViewSet):
         review = get_object_or_404(Review, id=self.kwargs['review_id'], title=self.kwargs['title_id'])
         queryset = review.comments.all()
         return queryset
+
+
+class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                               mixins.DestroyModelMixin,
+                               viewsets.GenericViewSet):
+    """
+    Кастомный ViewSet для отображения списка, создания и удаления
+    объектов
+    """
+    pass
+
+
+class CategoryViewSet(ListCreateDestroyViewSet):
+    """
+    ViewSet предназначен для просмотра списка категорий (типы)
+    произведений, создания и удаления категории
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+
+
+class GenreViewSet(ListCreateDestroyViewSet):
+    """
+    ViewSet предназначен для просмотра списка категорий жанров, создания и
+    удаления жанра
+    """
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet предоставляет CRUD действия с произведения, к которым пишут
+    отзывы (определённый фильм, книга или песенка).
+    """
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
