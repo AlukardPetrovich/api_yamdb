@@ -39,7 +39,6 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
 
 
-
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор категорий произведений"""
 
@@ -57,7 +56,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
-    """Сериализатор произведения"""
+    """Сериализатор списка произведений"""
     rating = serializers.SerializerMethodField()
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
@@ -72,6 +71,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
+    """Сериализатор для создания/обновления произведения"""
     genre = serializers.SlugRelatedField(queryset=Genre.objects.all(),
                                          slug_field='slug', many=True)
 
@@ -81,4 +81,3 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = ('name', 'year', 'description', 'genre', 'category')
-
