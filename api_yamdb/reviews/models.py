@@ -70,7 +70,8 @@ class Title(models.Model):
                                            MaxValueValidator(
                                                datetime.now().year)
                                        ])
-    description = models.TextField(verbose_name='Описание')
+    description = models.TextField(verbose_name='Описание', blank=True,
+                                   null=True)
     genre = models.ManyToManyField(Genre,
                                    related_name='titles',
                                    verbose_name='Жанры произведения')
