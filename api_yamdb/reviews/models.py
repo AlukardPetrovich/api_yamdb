@@ -7,13 +7,11 @@ from django.db import models
 
 class User(AbstractUser):
 
-    ANONIMUS = 'anon'
     AUTHENTICATED = 'user'
     MODERATOR = 'moder'
     ADMINISTRATOR = 'admin'
     SUPERUSER = 'root'
     ROLE_CHOISES = [
-        (ANONIMUS, 'Аноним'),
         (AUTHENTICATED, 'Аутентифицированный пользователь'),
         (MODERATOR, 'Модератор'),
         (ADMINISTRATOR, 'Администратор'),
@@ -117,6 +115,6 @@ class Comment(models.Model):
         verbose_name='дата публикации',
         auto_now_add=True
     )
-    
+
     def __str__(self):
         return self.text
