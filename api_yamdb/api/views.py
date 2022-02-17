@@ -1,13 +1,66 @@
+from django.contrib.auth.tokens import default_token_generator
+from rest_framework import viewsets, status
+from reviews.models import Review, Title, User, Category, Genre
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.generics import get_object_or_404
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from django.core.mail import send_mail
+from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets
-from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
-
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
-                             TitleCreateSerializer, TitleSerializer)
-from reviews.models import Category, Genre, Review, Title
+                             TitleCreateSerializer, TitleSerializer,
+                             RegistrationsSerializer, GetTokenSerializer)
 from .permissions import IsAuthorOrAdminOrReadOnly
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny, ])
+def registrations(request):
+    if request.method == 'POST':
+        serializer = RegistrationsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            username = serializer.data['username']
+            user = get_object_or_404(User, username=username)
+            token = default_token_generator.make_token(user)
+            send_mail(
+                'Ваш confirmation_code',
+                f'Для пользавателя {username} выпущен'
+                f'confirmation_code:{token}',
+                'from@example.com',
+                ['to@example.com'],
+                fail_silently=False,
+            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny, ])
+def get_token(request):
+    if request.method == 'POST':
+        serializer = GetTokenSerializer(data=request.data)
+        if serializer.is_valid():
+            user = get_object_or_404(
+                User,
+                username=serializer.data['username']
+            )
+            confirmation_code = request.data['confirmation_code']
+            if default_token_generator.check_token(
+                user,
+                confirmation_code
+            ) is True:
+                refresh = RefreshToken.for_user(user)
+                return Response(
+                    {'access': str(refresh.access_token)},
+                    status=status.HTTP_200_OK
+                )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

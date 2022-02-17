@@ -5,6 +5,7 @@ from django.views.generic import TemplateView
 from api_yamdb.yasg import urlpatterns as api_doc
 
 urlpatterns = [
+    path('api/', include('api.urls')),
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path(
