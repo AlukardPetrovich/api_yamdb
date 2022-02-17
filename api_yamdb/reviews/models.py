@@ -42,7 +42,8 @@ class Category(models.Model):
     """Модель категорий (типы) произведений («Фильмы», «Книги», «Музыка»)"""
 
     name = models.CharField(max_length=256, verbose_name='Имя категории')
-    slug = models.SlugField(max_length=50, verbose_name='Слаг категории')
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name='Слаг категории')
 
     def __str__(self):
         return self.name
@@ -52,7 +53,8 @@ class Genre(models.Model):
     """Модель жанра произведения"""
 
     name = models.CharField(max_length=256, verbose_name='Имя жанра')
-    slug = models.SlugField(max_length=50, verbose_name='Слаг жанра')
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name='Слаг жанра')
 
     def __str__(self):
         return self.name

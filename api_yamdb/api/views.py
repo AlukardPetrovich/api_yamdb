@@ -1,4 +1,5 @@
-from rest_framework import mixins, viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, mixins, permissions, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -64,6 +65,10 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     """
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          permissions.IsAdminUser, ]
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -73,6 +78,10 @@ class GenreViewSet(ListCreateDestroyViewSet):
     """
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter, )
+    search_fields = ('name',)
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          permissions.IsAdminUser, ]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -83,6 +92,10 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
+    filter_backends = (DjangoFilterBackend,)
+    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          permissions.IsAdminUser, ]
 
     def get_serializer_class(self):
         # в зависимости от действия выбираем тот или иной сериалайзер
