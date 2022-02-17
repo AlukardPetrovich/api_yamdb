@@ -14,7 +14,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     ViewSet модели Review. Позволяет работать с постами.
     Имеет функции: CRUD
-    Тип доступа:
     """
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthorOrAdminOrReadOnly, ]
@@ -36,7 +35,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     """
     ViewSet модели Comment. Позволяет работать с комментариями пользователей.
     Имеет функции: CRUD
-    Тип доступа:
     """
     serializer_class = CommentSerializer
     permission_classes = [IsAuthorOrAdminOrReadOnly, ]
@@ -105,6 +103,6 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         # в зависимости от действия выбираем тот или иной сериалайзер
-        if self.action == 'create':
+        if self.request.method in ['POST', 'PATCH']:
             return TitleCreateSerializer
         return TitleSerializer
