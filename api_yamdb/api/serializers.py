@@ -1,9 +1,9 @@
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
-
-from reviews.models import Category, Comment, Genre, Review, Title
 from rest_framework.validators import UniqueValidator
+
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class RegistrationsSerializer(serializers.ModelSerializer):
@@ -105,7 +105,8 @@ class TitleSerializer(serializers.ModelSerializer):
                   'category')
 
     def get_rating(self, obj):
-        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
+        return round(obj.reviews.all().aggregate(Avg('score'))[
+                         'score__avg'], 1)
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):

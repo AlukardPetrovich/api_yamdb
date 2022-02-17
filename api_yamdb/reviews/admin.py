@@ -36,7 +36,7 @@ class TitleAdmin(admin.ModelAdmin):
     empty_value_display = '-пусто-'
 
 
-admin.site.register(Comment)
+admin.site.register(Comment, CommentAdmin)
 admin.site.register(Review, ReviewAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Genre, GenreAdmin)
