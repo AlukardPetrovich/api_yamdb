@@ -40,7 +40,8 @@ class Category(models.Model):
     """Модель категорий (типы) произведений («Фильмы», «Книги», «Музыка»)"""
 
     name = models.CharField(max_length=256, verbose_name='Имя категории')
-    slug = models.SlugField(max_length=50, verbose_name='Слаг категории')
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name='Слаг категории')
 
     def __str__(self):
         return self.name
@@ -50,7 +51,8 @@ class Genre(models.Model):
     """Модель жанра произведения"""
 
     name = models.CharField(max_length=256, verbose_name='Имя жанра')
-    slug = models.SlugField(max_length=50, verbose_name='Слаг жанра')
+    slug = models.SlugField(max_length=50, unique=True,
+                            verbose_name='Слаг жанра')
 
     def __str__(self):
         return self.name
@@ -68,7 +70,8 @@ class Title(models.Model):
                                            MaxValueValidator(
                                                datetime.now().year)
                                        ])
-    description = models.TextField(verbose_name='Описание')
+    description = models.TextField(verbose_name='Описание', blank=True,
+                                   null=True)
     genre = models.ManyToManyField(Genre,
                                    related_name='titles',
                                    verbose_name='Жанры произведения')
@@ -83,6 +86,9 @@ class Title(models.Model):
 
 
 class Review(models.Model):
+    """
+    Модель отзыва о произведение.
+    """
     text = models.TextField(verbose_name='текст отзыва')
     pub_date = models.DateTimeField(verbose_name='дата публикации',
                                     auto_now_add=True)
@@ -104,6 +110,9 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """
+    Модель комментария к отзыву.
+    """
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='comments',
         verbose_name='автор комментария')
