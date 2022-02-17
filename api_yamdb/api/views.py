@@ -7,6 +7,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer)
 from reviews.models import Category, Genre, Review, Title
+from .permissions import IsAuthorOrAdminOrReadOnly
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -16,6 +17,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     Тип доступа:
     """
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthorOrAdminOrReadOnly, ]
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
@@ -26,6 +28,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         queryset = title.reviews.all()
         return queryset
 
+    def perform_update(self, serializer):
+        serializer.save()
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     """
@@ -34,6 +39,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     Тип доступа:
     """
     serializer_class = CommentSerializer
+    permission_classes = [IsAuthorOrAdminOrReadOnly, ]
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs['review_id'])
