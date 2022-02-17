@@ -21,11 +21,11 @@ class User(AbstractUser):
         max_length=5,
         choices=ROLE_CHOISES,
         default=AUTHENTICATED
-    ),
+    )
     bio = models.TextField(
         'Биография',
         blank=True,
-    ),
+    )
 
     class Meta:
         constraints = [
