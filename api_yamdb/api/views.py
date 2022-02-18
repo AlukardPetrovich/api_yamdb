@@ -13,7 +13,8 @@ from rest_framework import filters, mixins, permissions, viewsets
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
-                             RegistrationsSerializer, GetTokenSerializer)
+                             RegistrationsSerializer, GetTokenSerializer,
+                             UserSerialiser)
 from .permissions import IsAuthorOrAdminOrReadOnly
 
 
@@ -24,6 +25,7 @@ def registrations(request):
         serializer = RegistrationsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            email = serializer.data['email']
             username = serializer.data['username']
             user = get_object_or_404(User, username=username)
             token = default_token_generator.make_token(user)
@@ -32,7 +34,7 @@ def registrations(request):
                 f'Для пользавателя {username} выпущен'
                 f'confirmation_code:{token}',
                 'from@example.com',
-                ['to@example.com'],
+                [f'{email}'],
                 fail_silently=False,
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -60,6 +62,10 @@ def get_token(request):
                     status=status.HTTP_200_OK
                 )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewset(viewsets.ModelViewSet):
+    serializer_class = UserSerialiser
 
 
 

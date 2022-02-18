@@ -10,12 +10,10 @@ class User(AbstractUser):
     AUTHENTICATED = 'user'
     MODERATOR = 'moder'
     ADMINISTRATOR = 'admin'
-    SUPERUSER = 'root'
     ROLE_CHOISES = [
         (AUTHENTICATED, 'Аутентифицированный пользователь'),
         (MODERATOR, 'Модератор'),
         (ADMINISTRATOR, 'Администратор'),
-        (SUPERUSER, 'Суперюзер Django'),
     ]
     role = models.CharField(
         max_length=5,
