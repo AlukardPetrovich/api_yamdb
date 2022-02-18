@@ -8,8 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from rest_framework_simplejwt.tokens import RefreshToken
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, viewsets
+
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
@@ -77,8 +76,7 @@ class UserViewset(viewsets.ModelViewSet):
         user = get_object_or_404(User, username=self.kwargs['username'])
         print(user)
         serializer = self.get_serializer(user, many=False)
-        return Response(serializer.data) 
-
+        return Response(serializer.data)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -94,6 +92,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
+        # Добавил условие, чтобы в консоли не отображалась ошибка при
+        # генерации документации yasg
+        if getattr(self, 'swagger_fake_view', False):
+            return Title.objects.none()
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         queryset = title.reviews.all()
         return queryset
@@ -115,6 +117,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
     def get_queryset(self):
+        # Добавил условие, чтобы в консоли не отображалась ошибка при
+        # генерации документации yasg
+        if getattr(self, 'swagger_fake_view', False):
+            return Review.objects.none()
         review = get_object_or_404(
             Review, id=self.kwargs['review_id'],
             title=self.kwargs['title_id']
@@ -133,6 +139,12 @@ class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     pass
 
 
+class CreateDestroyViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                           viewsets.GenericViewSet):
+    """Кастомный ViewSet для создания и удаления объектов"""
+    pass
+
+
 class CategoryViewSet(ListCreateDestroyViewSet):
     """
     ViewSet предназначен для просмотра списка категорий (типы)
@@ -142,8 +154,8 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    lookup_field = 'slug'
+    permission_classes = []
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -158,6 +170,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     #permission_classes = [permissions.AllowAny,]
     #permission_classes = [permissions.IsAuthenticatedOrReadOnly,
      #                     permissions.IsAdminUser, ]
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
