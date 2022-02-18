@@ -16,3 +16,5 @@ class IsAuthorOrAdminOrReadOnly(BasePermission):
             or request.user.role == request.user.ADMINISTRATOR
             or request.user.role == request.user.SUPERUSER
         )
+
+
