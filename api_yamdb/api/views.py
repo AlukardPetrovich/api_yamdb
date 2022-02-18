@@ -1,20 +1,20 @@
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import viewsets, status
-from reviews.models import Review, Title, User, Category, Genre
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.generics import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
-from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, viewsets
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReviewSerializer,
+                             GenreSerializer, GetTokenSerializer,
+                             RegistrationsSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
-                             RegistrationsSerializer, GetTokenSerializer,
                              UserSerialiser)
+from reviews.models import Category, Genre, Review, Title, User
 from .permissions import IsAuthorOrAdminOrReadOnly
 
 
@@ -68,7 +68,6 @@ class UserViewset(viewsets.ModelViewSet):
     serializer_class = UserSerialiser
 
 
-
 class ReviewViewSet(viewsets.ModelViewSet):
     """
     ViewSet модели Review. Позволяет работать с постами.
@@ -82,6 +81,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
+        # Добавил условие, чтобы в консоли не отображалась ошибка при
+        # генерации документации yasg
+        if getattr(self, 'swagger_fake_view', False):
+            return Title.objects.none()
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         queryset = title.reviews.all()
         return queryset
@@ -103,6 +106,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user, review=review)
 
     def get_queryset(self):
+        # Добавил условие, чтобы в консоли не отображалась ошибка при
+        # генерации документации yasg
+        if getattr(self, 'swagger_fake_view', False):
+            return Review.objects.none()
         review = get_object_or_404(
             Review, id=self.kwargs['review_id'],
             title=self.kwargs['title_id']
@@ -121,6 +128,12 @@ class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     pass
 
 
+class CreateDestroyViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                           viewsets.GenericViewSet):
+    """Кастомный ViewSet для создания и удаления объектов"""
+    pass
+
+
 class CategoryViewSet(ListCreateDestroyViewSet):
     """
     ViewSet предназначен для просмотра списка категорий (типы)
@@ -130,8 +143,8 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    lookup_field = 'slug'
+    permission_classes = []
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -143,8 +156,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -157,8 +169,16 @@ class TitleViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+
+    # def get_queryset(self):
+    #     # Добавил условие, чтобы в консоли не отображалась ошибка при
+    #     # генерации документации yasg
+    #     if getattr(self, 'swagger_fake_view', False):
+    #         return Title.objects.none()
+    #     # определяю queryset для получения всех комментариев поста
+    #     title_id = self.kwargs.get('titles_id')
+    #     title = get_object_or_404(Title, id=title_id)
+    #     return title
 
     def get_serializer_class(self):
         # в зависимости от действия выбираем тот или иной сериалайзер
