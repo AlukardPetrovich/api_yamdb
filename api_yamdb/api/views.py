@@ -15,7 +15,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              TitleCreateSerializer, TitleSerializer,
                              RegistrationsSerializer, GetTokenSerializer,
                              UserSerialiser)
-from .permissions import IsAuthorOrAdminOrReadOnly
+from .permissions import IsAuthorOrAdminOrReadOnly, IsAdmin
 
 
 @api_view(['POST'])
@@ -65,7 +65,9 @@ def get_token(request):
 
 
 class UserViewset(viewsets.ModelViewSet):
+
     serializer_class = UserSerialiser
+    permission_classes = [IsAdmin]
 
 
 
@@ -143,8 +145,9 @@ class GenreViewSet(ListCreateDestroyViewSet):
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    #permission_classes = [permissions.AllowAny,]
+    #permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+     #                     permissions.IsAdminUser, ]
 
 
 class TitleViewSet(viewsets.ModelViewSet):

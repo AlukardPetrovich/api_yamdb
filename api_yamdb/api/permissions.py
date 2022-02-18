@@ -18,3 +18,6 @@ class IsAuthorOrAdminOrReadOnly(BasePermission):
         )
 
 
+class IsAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return (request.user.role == 'admin')

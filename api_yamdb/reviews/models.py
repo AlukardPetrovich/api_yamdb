@@ -8,7 +8,7 @@ from django.db import models
 class User(AbstractUser):
 
     AUTHENTICATED = 'user'
-    MODERATOR = 'moder'
+    MODERATOR = 'moderator'
     ADMINISTRATOR = 'admin'
     ROLE_CHOISES = [
         (AUTHENTICATED, 'Аутентифицированный пользователь'),
