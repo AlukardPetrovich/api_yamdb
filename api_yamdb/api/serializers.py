@@ -8,11 +8,11 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 class RegistrationsSerializer(serializers.ModelSerializer):
     username = serializers.CharField(
-        max_length=30,
-        min_length=6,
+        max_length=150,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
     email = serializers.EmailField(
+        max_length=254,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
@@ -41,6 +41,18 @@ class GetTokenSerializer(serializers.ModelSerializer):
     def get_confirmation_code(self, obj):
         return
 
+class UserSerialiser(serializers.ModelSerializer):
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+
+    
+
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -49,7 +61,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     text = serializers.CharField(allow_blank=True, required=True)
 
     class Meta:
-        fields = '__all__'
+        fields = 'id', 'text', 'author', 'score', 'pub_date'
         model = Review
 
     def validate(self, data):
@@ -73,7 +85,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = 'id', 'text', 'author', 'pub_date'
         model = Comment
 
 
@@ -105,8 +117,8 @@ class TitleSerializer(serializers.ModelSerializer):
                   'category')
 
     def get_rating(self, obj):
-        return round(obj.reviews.all().aggregate(Avg('score'))[
-                         'score__avg'], 1)
+        return obj.reviews.all().aggregate(Avg('score'))[
+                         'score__avg']
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -119,4 +131,4 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')

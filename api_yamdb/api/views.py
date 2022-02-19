@@ -1,29 +1,31 @@
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import viewsets, status
-from reviews.models import Review, Title, User, Category, Genre
-from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.generics import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
-from rest_framework_simplejwt.tokens import RefreshToken
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, viewsets
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+
+from api.filters import TitleFilter
+from api.permissions import IsAdminOrOwnerOrSuperuserForUser, IsAdminOrReadOnly
 from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, ReviewSerializer,
+                             GenreSerializer, GetTokenSerializer,
+                             RegistrationsSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
-                             RegistrationsSerializer, GetTokenSerializer)
-from .permissions import IsAuthorOrAdminOrReadOnly
+                             UserSerialiser)
+from reviews.models import Category, Genre, Review, Title, User
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny, ])
+@permission_classes([permissions.AllowAny, ])
 def registrations(request):
     if request.method == 'POST':
         serializer = RegistrationsSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            email = serializer.data['email']
             username = serializer.data['username']
             user = get_object_or_404(User, username=username)
             token = default_token_generator.make_token(user)
@@ -32,7 +34,7 @@ def registrations(request):
                 f'Для пользавателя {username} выпущен'
                 f'confirmation_code:{token}',
                 'from@example.com',
-                ['to@example.com'],
+                [f'{email}'],
                 fail_silently=False,
             )
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -40,7 +42,7 @@ def registrations(request):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny, ])
+@permission_classes([permissions.AllowAny, ])
 def get_token(request):
     if request.method == 'POST':
         serializer = GetTokenSerializer(data=request.data)
@@ -62,6 +64,22 @@ def get_token(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserViewSet(viewsets.ModelViewSet):
+
+    serializer_class = UserSerialiser
+    queryset = User.objects.all()
+    permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
+    pagination_class = LimitOffsetPagination
+    lookup_field = 'username'
+
+    @action(detail=False, url_path='username')
+    def username(self, request):
+        print(1)
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        print(user)
+        serializer = self.get_serializer(user, many=False)
+        return Response(serializer.data)
+
 
 class ReviewViewSet(viewsets.ModelViewSet):
     """
@@ -69,13 +87,18 @@ class ReviewViewSet(viewsets.ModelViewSet):
     Имеет функции: CRUD
     """
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthorOrAdminOrReadOnly, ]
+    http_method_names = ['get', 'post', 'patch', 'delete']
+    permission_classes = []
     pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
     def get_queryset(self):
+        # Добавил условие, чтобы в консоли не отображалась ошибка при
+        # генерации документации yasg
+        if getattr(self, 'swagger_fake_view', False):
+            return Title.objects.none()
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         queryset = title.reviews.all()
         return queryset
@@ -90,16 +113,20 @@ class CommentViewSet(viewsets.ModelViewSet):
     Имеет функции: CRUD
     """
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthorOrAdminOrReadOnly, ]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, id=self.kwargs['review_id'])
         serializer.save(author=self.request.user, review=review)
 
     def get_queryset(self):
+        # Добавил условие, чтобы в консоли не отображалась ошибка при
+        # генерации документации yasg
+        if getattr(self, 'swagger_fake_view', False):
+            return Review.objects.none()
         review = get_object_or_404(
             Review, id=self.kwargs['review_id'],
-            title=self.kwargs['title_id']
+            title_id=self.kwargs['title_id']
         )
         queryset = review.comments.all()
         return queryset
@@ -115,6 +142,12 @@ class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     pass
 
 
+class CreateDestroyViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
+                           viewsets.GenericViewSet):
+    """Кастомный ViewSet для создания и удаления объектов"""
+    pass
+
+
 class CategoryViewSet(ListCreateDestroyViewSet):
     """
     ViewSet предназначен для просмотра списка категорий (типы)
@@ -124,8 +157,8 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     serializer_class = CategorySerializer
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    lookup_field = 'slug'
+    permission_classes = [IsAdminOrReadOnly, ]
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -137,8 +170,8 @@ class GenreViewSet(ListCreateDestroyViewSet):
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    permission_classes = [IsAdminOrReadOnly]
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -150,9 +183,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ('category__slug', 'genre__slug', 'name', 'year')
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          permissions.IsAdminUser, ]
+    filterset_class = TitleFilter
+    permission_classes = [IsAdminOrReadOnly]
 
     def get_serializer_class(self):
         # в зависимости от действия выбираем тот или иной сериалайзер

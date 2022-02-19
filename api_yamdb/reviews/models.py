@@ -8,14 +8,12 @@ from django.db import models
 class User(AbstractUser):
 
     AUTHENTICATED = 'user'
-    MODERATOR = 'moder'
+    MODERATOR = 'moderator'
     ADMINISTRATOR = 'admin'
-    SUPERUSER = 'root'
     ROLE_CHOISES = [
         (AUTHENTICATED, 'Аутентифицированный пользователь'),
         (MODERATOR, 'Модератор'),
         (ADMINISTRATOR, 'Администратор'),
-        (SUPERUSER, 'Суперюзер Django'),
     ]
     role = models.CharField(
         max_length=5,
@@ -97,7 +95,8 @@ class Review(models.Model):
         verbose_name='автор публикации')
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
-        related_name='reviews', verbose_name='наименование произведения'
+        related_name='reviews', verbose_name='наименование произведения',
+        null=True
     )
     score = models.IntegerField(verbose_name='оценка произведения',
                                 validators=[
