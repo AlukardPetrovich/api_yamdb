@@ -35,6 +35,7 @@ class TitleAdmin(admin.ModelAdmin):
     list_filter = ('year', 'genre', 'category')
     empty_value_display = '-пусто-'
 
+
 class UserAdmin(admin.ModelAdmin):
     list_display = ('username', "role", 'bio')
 

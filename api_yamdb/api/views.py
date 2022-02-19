@@ -3,7 +3,7 @@ from rest_framework import viewsets, status
 from reviews.models import Review, Title, User, Category, Genre
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.generics import get_object_or_404
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
@@ -15,7 +15,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              TitleCreateSerializer, TitleSerializer,
                              RegistrationsSerializer, GetTokenSerializer,
                              UserSerialiser)
-from .permissions import IsAuthorOrAdminOrReadOnly, IsAdmin
+from .permissions import IsAuthorOrAdminOrReadOnly, IsAdminOrOwnerOrSuperuser
 
 
 @api_view(['POST'])
@@ -67,7 +67,17 @@ def get_token(request):
 class UserViewset(viewsets.ModelViewSet):
 
     serializer_class = UserSerialiser
-    permission_classes = [IsAdmin]
+    queryset = User.objects.all()
+    permission_classes = [IsAdminOrOwnerOrSuperuser, ]
+    pagination_class = LimitOffsetPagination
+
+    @action(detail=False, url_path='username')
+    def username(self, request):
+        print(1)
+        user = get_object_or_404(User, username=self.kwargs['username'])
+        print(user)
+        serializer = self.get_serializer(user, many=False)
+        return Response(serializer.data) 
 
 
 
