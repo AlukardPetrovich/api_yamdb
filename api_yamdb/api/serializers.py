@@ -61,7 +61,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     text = serializers.CharField(allow_blank=True, required=True)
 
     class Meta:
-        fields = '__all__'
+        fields = 'id', 'text', 'author', 'score', 'pub_date'
         model = Review
 
     def validate(self, data):
@@ -85,7 +85,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = 'id', 'text', 'author', 'pub_date'
         model = Comment
 
 
@@ -117,8 +117,8 @@ class TitleSerializer(serializers.ModelSerializer):
                   'category')
 
     def get_rating(self, obj):
-        return round(obj.reviews.all().aggregate(Avg('score'))[
-                         'score__avg'], 1)
+        return obj.reviews.all().aggregate(Avg('score'))[
+                         'score__avg']
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
@@ -131,4 +131,4 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('name', 'year', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
