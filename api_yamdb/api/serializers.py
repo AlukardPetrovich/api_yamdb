@@ -2,6 +2,9 @@ from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.permissions import SAFE_METHODS
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -61,7 +64,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     text = serializers.CharField(allow_blank=True, required=True)
 
     class Meta:
-        fields = 'id', 'text', 'author', 'score', 'pub_date'
+        fields = ('id', 'text', 'author', 'score', 'pub_date',)
         model = Review
 
     def validate(self, data):
@@ -85,7 +88,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = 'id', 'text', 'author', 'pub_date'
+        fields = ('id', 'text', 'author', 'pub_date',)
         model = Comment
 
 

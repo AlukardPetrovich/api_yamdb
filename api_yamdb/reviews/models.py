@@ -108,6 +108,15 @@ class Review(models.Model):
         return self.text
 
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review'
+            )
+        ]
+
+
 class Comment(models.Model):
     """
     Модель комментария к отзыву.
