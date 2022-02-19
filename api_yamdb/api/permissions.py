@@ -25,11 +25,18 @@ class IsAdminOrReadOnly(BasePermission):
         )
 
 
-class IsAdminOrReadOnly(BasePermission):
+class IsAuthorOrAdminOrModeratorOrRead(BasePermission):
     def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
+        if request.method in ['POST', 'PATCH', 'DELETE']:
+            return request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in SAFE_METHODS:
+            return True
         return (
-            request.method in SAFE_METHODS
-            or request.user.role == 'admin'
+            obj.author == request.user
+            or request.user and request.user.role == 'admin'
+            or request.user and request.user.role == 'moderator'
         )
-
-
