@@ -4,14 +4,15 @@ from .models import Category, Comment, Genre, Review, Title, User
 
 
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'pub_date', 'author', 'title', 'score')
+    list_display = ('pk', 'text', 'pub_date', 'author_id', 'title_id',
+                    'score')
     search_fields = ('title',)
     list_filter = ('pub_date',)
     empty_value_display = '-пусто-'
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'pub_date', 'author', 'review')
+    list_display = ('pk', 'text', 'pub_date', 'author_id', 'review_id')
     search_fields = ('review',)
     list_filter = ('pub_date',)
     empty_value_display = '-пусто-'

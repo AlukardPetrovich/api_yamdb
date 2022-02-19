@@ -95,7 +95,8 @@ class Review(models.Model):
         verbose_name='автор публикации')
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
-        related_name='reviews', verbose_name='наименование произведения'
+        related_name='reviews', verbose_name='наименование произведения',
+        null=True
     )
     score = models.IntegerField(verbose_name='оценка произведения',
                                 validators=[
