@@ -16,7 +16,7 @@ class User(AbstractUser):
         (ADMINISTRATOR, 'Администратор'),
     ]
     role = models.CharField(
-        max_length=5,
+        max_length=10,
         choices=ROLE_CHOISES,
         default=AUTHENTICATED
     )

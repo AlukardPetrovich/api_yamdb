@@ -7,14 +7,16 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 
 from api.filters import TitleFilter
-from api.permissions import IsAdminOrOwnerOrSuperuserForUser, IsAdminOrReadOnly
+from api.permissions import (IsAdminOrOwnerOrSuperuserForUser, IsAdminOrReadOnly,
+                             IsAdminOrModeratorOrOwner)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTokenSerializer,
                              RegistrationsSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
-                             UserSerialiser)
+                             UserSerializer, MeSerializer)
 from reviews.models import Category, Genre, Review, Title, User
 
 
@@ -66,19 +68,31 @@ def get_token(request):
 
 class UserViewSet(viewsets.ModelViewSet):
 
-    serializer_class = UserSerialiser
+    serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
     pagination_class = LimitOffsetPagination
     lookup_field = 'username'
 
-    @action(detail=False, url_path='username')
-    def username(self, request):
-        print(1)
-        user = get_object_or_404(User, username=self.kwargs['username'])
-        print(user)
-        serializer = self.get_serializer(user, many=False)
-        return Response(serializer.data)
+
+class MeAPI(APIView):
+    def get(self, request):
+        user = request.user
+        user = get_object_or_404(User, username=user.username)
+        serializer = MeSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        user = request.user
+        user = get_object_or_404(User, username=user.username)
+        # if user.role == 'user':
+        #     request.data.pop('role')
+        serializer = MeSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

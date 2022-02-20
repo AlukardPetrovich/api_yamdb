@@ -1,7 +1,10 @@
+import email
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+from rest_framework.generics import get_object_or_404
+
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -41,7 +44,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
     def get_confirmation_code(self, obj):
         return
 
-class UserSerialiser(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
@@ -52,6 +55,24 @@ class UserSerialiser(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
 
     
+class MeSerializer(serializers.ModelSerializer):
+    username = serializers.StringRelatedField(read_only=True)
+    email = serializers.StringRelatedField(read_only=True)
+
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role')
+
+    def update(self, instance, validated_data):
+        print(f'instance {instance}')
+        print()
+        print(f'validated_data {validated_data}')
+        user = get_object_or_404(User, username=instance)
+        if user.role == 'user' and 'role' in validated_data:
+
+            validated_data.pop('role')
+        return super().update(instance, validated_data) 
 
 
 
