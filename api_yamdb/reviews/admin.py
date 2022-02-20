@@ -4,18 +4,34 @@ from .models import Category, Comment, Genre, Review, Title, User
 
 
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'pub_date', 'author_id', 'title_id',
+    list_display = ('pk', 'text', 'pub_date', 'get_author', 'get_title',
                     'score')
     search_fields = ('title',)
     list_filter = ('pub_date',)
     empty_value_display = '-пусто-'
 
+    def get_author(self, obj):
+        return obj.author
+    get_author.short_description = 'Автор'
+
+    def get_title(self, obj):
+        return obj.title
+    get_title.short_description = 'Произведение'
+
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'pub_date', 'author_id', 'review_id')
+    list_display = ('pk', 'text', 'pub_date', 'get_author', 'get_review')
     search_fields = ('review',)
     list_filter = ('pub_date',)
     empty_value_display = '-пусто-'
+
+    def get_author(self, obj):
+        return obj.author
+    get_author.short_description = 'Автор'
+
+    def get_review(self, obj):
+        return obj.review
+    get_review.short_description = 'Отзыв'
 
 
 class CategoryAdmin(admin.ModelAdmin):
