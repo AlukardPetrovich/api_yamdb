@@ -24,7 +24,6 @@ class IsAdminOrReadOnly(BasePermission):
         )
 
 
-
 class IsAdminOrModeratorOrOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         return (
