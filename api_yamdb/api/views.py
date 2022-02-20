@@ -6,7 +6,7 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from rest_framework.views import APIView
 from api.filters import TitleFilter
 from api.permissions import (IsAdminOrOwnerOrSuperuserForUser,
                              IsAdminOrReadOnly,
@@ -15,7 +15,7 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTokenSerializer,
                              RegistrationsSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
-                             UserSerializer)
+                             UserSerializer, MeSerializer)
 from reviews.models import Category, Genre, Review, Title, User
 
 
@@ -72,11 +72,25 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
     lookup_field = 'username'
 
-    @action(detail=False, url_path='username')
-    def username(self, request):
-        user = get_object_or_404(User, username=self.kwargs['username'])
-        serializer = self.get_serializer(user, many=False)
-        return Response(serializer.data)
+
+class MeAPI(APIView):
+    def get(self, request):
+        user = request.user
+        user = get_object_or_404(User, username=user.username)
+        serializer = MeSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        user = request.user
+        user = get_object_or_404(User, username=user.username)
+        # if user.role == 'user':
+        #     request.data.pop('role')
+        serializer = MeSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

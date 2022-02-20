@@ -16,6 +16,7 @@ class User(AbstractUser):
         (MODERATOR, 'Модератор'),
         (ADMINISTRATOR, 'Администратор'),
     ]
+
     role = models.CharField(verbose_name='Роль', max_length=10,
                             choices=ROLE_CHOICES, default=AUTHENTICATED)
     bio = models.TextField(verbose_name='Биография', blank=True, null=True)
