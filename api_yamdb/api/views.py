@@ -2,20 +2,21 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
+
 from api.filters import TitleFilter
 from api.permissions import (IsAdminOrOwnerOrSuperuserForUser,
                              IsAdminOrReadOnly,
                              IsAuthorOrAdminOrModeratorOrRead)
 from api.serializers import (CategorySerializer, CommentSerializer,
-                             GenreSerializer, GetTokenSerializer,
+                             GenreSerializer, GetTokenSerializer, MeSerializer,
                              RegistrationsSerializer, ReviewSerializer,
                              TitleCreateSerializer, TitleSerializer,
-                             UserSerializer, MeSerializer)
+                             UserSerializer)
 from reviews.models import Category, Genre, Review, Title, User
 
 
@@ -66,7 +67,7 @@ def get_token(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-
+    """ViewSet модели кастомного пользователя"""
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
@@ -74,6 +75,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class MeAPI(APIView):
+    """ViewSet для методов редактирования информации о пользователе"""
     def get(self, request):
         user = request.user
         user = get_object_or_404(User, username=user.username)
@@ -83,14 +85,11 @@ class MeAPI(APIView):
     def patch(self, request):
         user = request.user
         user = get_object_or_404(User, username=user.username)
-        # if user.role == 'user':
-        #     request.data.pop('role')
         serializer = MeSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
