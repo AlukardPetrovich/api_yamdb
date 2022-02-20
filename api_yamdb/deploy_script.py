@@ -22,7 +22,7 @@ comments = data_import('db.sqlite3', 'reviews_comment',
                        'static/data/comments.csv')
 genre = data_import('db.sqlite3', 'reviews_genre', 'static/data/genre.csv')
 genre_title = data_import('db.sqlite3', 'reviews_title_genre',
-                                  'static/data/genre_title.csv')
+                          'static/data/genre_title.csv')
 rewiew = data_import('db.sqlite3', 'reviews_review', 'static/data/review.csv')
 titles = data_import('db.sqlite3', 'reviews_title', 'static/data/titles.csv')
 users = data_import('db.sqlite3', 'reviews_user', 'static/data/users.csv')

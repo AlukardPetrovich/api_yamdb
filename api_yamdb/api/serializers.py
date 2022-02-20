@@ -51,7 +51,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
     def get_confirmation_code(self, obj):
         return
 
-      
+
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели кастомного пользователя"""
     email = serializers.EmailField(
@@ -64,7 +64,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email', 'first_name', 'last_name', 'bio',
                   'role',)
 
-    
+
 class MeSerializer(serializers.ModelSerializer):
     username = serializers.StringRelatedField(read_only=True)
     email = serializers.StringRelatedField(read_only=True)
@@ -79,7 +79,7 @@ class MeSerializer(serializers.ModelSerializer):
         if user.role == 'user' and 'role' in validated_data:
 
             validated_data.pop('role')
-        return super().update(instance, validated_data) 
+        return super().update(instance, validated_data)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
