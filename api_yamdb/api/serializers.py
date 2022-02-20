@@ -39,11 +39,12 @@ class GetTokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('username', 'confirmation_code')
+        fields = ('username', 'confirmation_code',)
 
     def get_confirmation_code(self, obj):
         return
 
+      
 class UserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(
         required=True,
@@ -82,7 +83,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     text = serializers.CharField(allow_blank=True, required=True)
 
     class Meta:
-        fields = 'id', 'text', 'author', 'score', 'pub_date'
+        fields = ('id', 'text', 'author', 'score', 'pub_date',)
         model = Review
 
     def validate(self, data):
@@ -101,12 +102,11 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор модели Comment."""
-    author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username'
-    )
+    author = serializers.SlugRelatedField(read_only=True,
+                                          slug_field='username')
 
     class Meta:
-        fields = 'id', 'text', 'author', 'pub_date'
+        fields = ('id', 'text', 'author', 'pub_date',)
         model = Comment
 
 
@@ -115,7 +115,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('name', 'slug')
+        fields = ('name', 'slug',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -123,7 +123,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ('name', 'slug')
+        fields = ('name', 'slug',)
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -135,21 +135,19 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = ('id', 'name', 'year', 'rating', 'description', 'genre',
-                  'category')
+                  'category',)
 
     def get_rating(self, obj):
-        return obj.reviews.all().aggregate(Avg('score'))[
-                         'score__avg']
+        return obj.reviews.all().aggregate(Avg('score'))['score__avg']
 
 
 class TitleCreateSerializer(serializers.ModelSerializer):
     """Сериализатор для создания/обновления произведения"""
     genre = serializers.SlugRelatedField(queryset=Genre.objects.all(),
                                          slug_field='slug', many=True)
-
     category = serializers.SlugRelatedField(queryset=Category.objects.all(),
                                             slug_field='slug')
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category')
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category',)

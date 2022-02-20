@@ -4,14 +4,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-
 from api.filters import TitleFilter
-from api.permissions import (IsAdminOrOwnerOrSuperuserForUser, IsAdminOrReadOnly,
-                             IsAdminOrModeratorOrOwner)
+from api.permissions import (IsAdminOrOwnerOrSuperuserForUser,
+                             IsAdminOrReadOnly,
+                             IsAuthorOrAdminOrModeratorOrRead)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTokenSerializer,
                              RegistrationsSerializer, ReviewSerializer,
@@ -33,8 +32,8 @@ def registrations(request):
             token = default_token_generator.make_token(user)
             send_mail(
                 'Ваш confirmation_code',
-                f'Для пользавателя {username} выпущен'
-                f'confirmation_code:{token}',
+                f'Для пользователя {username} выпущен '
+                f'confirmation_code: {token}',
                 'from@example.com',
                 [f'{email}'],
                 fail_silently=False,
@@ -71,7 +70,6 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
-    pagination_class = LimitOffsetPagination
     lookup_field = 'username'
 
 
@@ -101,12 +99,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
     Имеет функции: CRUD
     """
     serializer_class = ReviewSerializer
+    permission_classes = [IsAuthorOrAdminOrModeratorOrRead, ]
     http_method_names = ['get', 'post', 'patch', 'delete']
-    permission_classes = []
-    pagination_class = LimitOffsetPagination
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        serializer.save(author=self.request.user, title=title)
 
     def get_queryset(self):
         # Добавил условие, чтобы в консоли не отображалась ошибка при
@@ -114,11 +112,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             return Title.objects.none()
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
-        queryset = title.reviews.all()
-        return queryset
-
-    def perform_update(self, serializer):
-        serializer.save()
+        return title.reviews.all()
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -128,9 +122,11 @@ class CommentViewSet(viewsets.ModelViewSet):
     """
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
+    permission_classes = [IsAuthorOrAdminOrModeratorOrRead, ]
 
     def perform_create(self, serializer):
-        review = get_object_or_404(Review, id=self.kwargs['review_id'])
+        review = get_object_or_404(Review, title_id=self.kwargs['title_id'],
+                                   id=self.kwargs['review_id'])
         serializer.save(author=self.request.user, review=review)
 
     def get_queryset(self):
@@ -139,11 +135,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         if getattr(self, 'swagger_fake_view', False):
             return Review.objects.none()
         review = get_object_or_404(
-            Review, id=self.kwargs['review_id'],
-            title_id=self.kwargs['title_id']
+            Review, title_id=self.kwargs['title_id'],
+            id=self.kwargs['review_id'],
         )
-        queryset = review.comments.all()
-        return queryset
+        return review.comments.all()
 
 
 class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -153,12 +148,6 @@ class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
     Кастомный ViewSet для отображения списка, создания и удаления
     объектов
     """
-    pass
-
-
-class CreateDestroyViewSet(mixins.CreateModelMixin, mixins.DestroyModelMixin,
-                           viewsets.GenericViewSet):
-    """Кастомный ViewSet для создания и удаления объектов"""
     pass
 
 
