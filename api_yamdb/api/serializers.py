@@ -79,8 +79,9 @@ class MeSerializer(ModelSerializer):
 
     def update(self, instance, validated_data):
         user = get_object_or_404(User, username=instance)
+        print(user)
         if user.role == 'user' and 'role' in validated_data:
-
+            print(user)
             validated_data.pop('role')
         return super().update(instance, validated_data)
 

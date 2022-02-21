@@ -2,10 +2,9 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from api.filters import TitleFilter
@@ -57,7 +56,7 @@ def get_token(request):
         refresh = RefreshToken.for_user(user)
         return Response(
             {'access': str(refresh.access_token)},
-            status=status.HTTP_200_OK
+            status=status
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -69,19 +68,28 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
     lookup_field = 'username'
 
-
-class MeAPI(APIView):
-    """ViewSet для методов редактирования информации о пользователе"""
+    @action(
+        detail=False,
+        url_path='me',
+        permission_classes=[permissions.IsAuthenticated, ]
+    )
     def get(self, request):
         user = request.user
         user = get_object_or_404(User, username=user.username)
         serializer = MeSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(
+        detail=False,
+        methods=['patch'],
+        url_path='me',
+        permission_classes=[permissions.IsAuthenticated, ]
+    )
     def patch(self, request):
         user = request.user
         user = get_object_or_404(User, username=user.username)
         serializer = MeSerializer(user, data=request.data, partial=True)
+        print(serializer)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
