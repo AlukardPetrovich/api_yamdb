@@ -1,15 +1,13 @@
-from email.policy import default
 import re
 
 from django.db.models import Avg
-from rest_framework.serializers import (
-    CharField, EmailField, ModelSerializer, SerializerMethodField,
-    StringRelatedField, ValidationError, HiddenField
-)
-
+from rest_framework import validators
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
-from rest_framework import validators
+from rest_framework.serializers import (CharField, EmailField, HiddenField,
+                                        ModelSerializer, SerializerMethodField,
+                                        ValidationError)
+
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -70,8 +68,6 @@ class UserSerializer(ModelSerializer):
 
 
 class MeSerializer(ModelSerializer):
-    username = StringRelatedField(read_only=True)
-    email = StringRelatedField(read_only=True)
 
     class Meta:
         model = User
@@ -109,6 +105,7 @@ class ReviewSerializer(ModelSerializer):
                 'Вы уже оставляли отзыв к данному произведению!'
             )
         return data
+
 
 class CommentSerializer(ModelSerializer):
     """Сериализатор модели Comment."""
