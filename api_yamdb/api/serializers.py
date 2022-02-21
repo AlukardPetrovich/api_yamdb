@@ -1,14 +1,15 @@
+from email.policy import default
 import re
 
 from django.db.models import Avg
 from rest_framework.serializers import (
     CharField, EmailField, ModelSerializer, SerializerMethodField,
-    StringRelatedField, ValidationError
+    StringRelatedField, ValidationError, HiddenField
 )
+
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueValidator
-
+from rest_framework import validators
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
@@ -16,11 +17,11 @@ class RegistrationsSerializer(ModelSerializer):
     """Сериализатор для регистрацции нового пользователя"""
     username = CharField(
         max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
     email = EmailField(
         max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
 
     class Meta:
@@ -59,7 +60,7 @@ class UserSerializer(ModelSerializer):
     """Сериализатор для модели кастомного пользователя"""
     email = EmailField(
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
 
     class Meta:
@@ -90,9 +91,10 @@ class ReviewSerializer(ModelSerializer):
     """Сериализатор модели Review."""
     author = SlugRelatedField(slug_field='username', read_only=True)
     text = CharField(allow_blank=True, required=True)
+    title = HiddenField(default='')
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date',)
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
 
     def validate(self, data):
@@ -107,7 +109,6 @@ class ReviewSerializer(ModelSerializer):
                 'Вы уже оставляли отзыв к данному произведению!'
             )
         return data
-
 
 class CommentSerializer(ModelSerializer):
     """Сериализатор модели Comment."""

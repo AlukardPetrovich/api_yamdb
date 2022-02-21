@@ -32,6 +32,18 @@ class User(AbstractUser):
             )
         ]
 
+    @property
+    def is_admin(self):
+        if self.role == 'admin':
+            return 'is_admin'
+        return
+
+    @property
+    def is_moderator(self):
+        if self.role == 'moderator':
+            return 'is_moderator'
+        return
+
 
 class Category(models.Model):
     """Модель категорий (типы) произведений («Фильмы», «Книги», «Музыка»)"""
@@ -40,13 +52,16 @@ class Category(models.Model):
     slug = models.SlugField(max_length=50, unique=True,
                             verbose_name='Слаг категории')
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ('-id',)
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
+        indexes = [
+            models.Index(fields=['name', ]),
+        ]
+
+    def __str__(self):
+        return self.name
 
 
 class Genre(models.Model):
@@ -63,6 +78,9 @@ class Genre(models.Model):
         ordering = ('-id',)
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
+        indexes = [
+            models.Index(fields=['name', ]),
+        ]
 
 
 class Title(models.Model):
@@ -109,11 +127,13 @@ class Review(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE,
                               related_name='reviews', null=True,
                               verbose_name='Наименование произведения')
-    score = models.IntegerField(verbose_name='Оценка произведения',
-                                validators=[
-                                    MinValueValidator(1),
-                                    MaxValueValidator(10)
-                                ])
+    score = models.PositiveSmallIntegerField(
+        verbose_name='Оценка произведения',
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ]
+    )
 
     def __str__(self):
         return self.text
@@ -149,3 +169,7 @@ class Comment(models.Model):
         ordering = ('-id',)
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+        indexes = [
+            models.Index(fields=['text', ]),
+            models.Index(fields=['author', ]),
+        ]

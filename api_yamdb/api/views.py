@@ -9,8 +9,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.conf import settings
 from api.filters import TitleFilter
 from api.permissions import (IsAdminOrOwnerOrSuperuserForUser,
-                             IsAdminOrReadOnly,
-                             IsAuthorOrAdminOrModeratorOrRead)
+                             IsAdmin, ReadOnly, IsModerator, IsSuperuser,
+                             IsOwner)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTokenSerializer, MeSerializer,
                              RegistrationsSerializer, ReviewSerializer,
@@ -101,7 +101,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     Имеет функции: CRUD
     """
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthorOrAdminOrModeratorOrRead, ]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        (ReadOnly | IsAdmin | IsModerator | IsOwner)
+    ]
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
@@ -124,7 +127,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     """
     serializer_class = CommentSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
-    permission_classes = [IsAuthorOrAdminOrModeratorOrRead, ]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly,
+        (ReadOnly | IsAdmin | IsModerator | IsOwner)
+    ]
 
     def perform_create(self, serializer):
         review = get_object_or_404(Review, title_id=self.kwargs['title_id'],
@@ -163,7 +169,7 @@ class CategoryViewSet(ListCreateDestroyViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
-    permission_classes = [IsAdminOrReadOnly, ]
+    permission_classes = [IsAdmin | IsSuperuser | ReadOnly]
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
@@ -175,7 +181,7 @@ class GenreViewSet(ListCreateDestroyViewSet):
     serializer_class = GenreSerializer
     filter_backends = (filters.SearchFilter, )
     search_fields = ('name',)
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdmin | IsSuperuser | ReadOnly]
     lookup_field = 'slug'
 
 
@@ -189,7 +195,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdmin | IsSuperuser | ReadOnly]
 
     def get_serializer_class(self):
         # в зависимости от действия выбираем тот или иной сериалайзер
