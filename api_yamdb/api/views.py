@@ -1,16 +1,18 @@
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
-from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework import filters, permissions, status, viewsets
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.conf import settings
+
+from api.custom_viewsets import (ListCreateDestroyViewSet,
+                                 RetrieveListCreateDestroyPartialUpdateViewSet)
 from api.filters import TitleFilter
-from api.permissions import (IsAdminOrOwnerOrSuperuserForUser,
-                             IsAdmin, ReadOnly, IsModerator, IsSuperuser,
-                             IsOwner)
+from api.permissions import (IsAdmin, IsAdminOrOwnerOrSuperuserForUser,
+                             IsModerator, IsOwner, IsSuperuser, ReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTokenSerializer, MeSerializer,
                              RegistrationsSerializer, ReviewSerializer,
@@ -89,13 +91,12 @@ class UserViewSet(viewsets.ModelViewSet):
         user = request.user
         user = get_object_or_404(User, username=user.username)
         serializer = MeSerializer(user, data=request.data, partial=True)
-        print(serializer)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(RetrieveListCreateDestroyPartialUpdateViewSet):
     """
     ViewSet модели Review. Позволяет работать с постами.
     Имеет функции: CRUD
@@ -105,7 +106,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticatedOrReadOnly,
         (ReadOnly | IsAdmin | IsModerator | IsOwner)
     ]
-    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
@@ -120,13 +120,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return title.reviews.all()
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(RetrieveListCreateDestroyPartialUpdateViewSet):
     """
     ViewSet модели Comment. Позволяет работать с комментариями пользователей.
     Имеет функции: CRUD
     """
     serializer_class = CommentSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [
         permissions.IsAuthenticatedOrReadOnly,
         (ReadOnly | IsAdmin | IsModerator | IsOwner)
@@ -147,16 +146,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             id=self.kwargs['review_id'],
         )
         return review.comments.all()
-
-
-class ListCreateDestroyViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
-                               mixins.DestroyModelMixin,
-                               viewsets.GenericViewSet):
-    """
-    Кастомный ViewSet для отображения списка, создания и удаления
-    объектов
-    """
-    pass
 
 
 class CategoryViewSet(ListCreateDestroyViewSet):
@@ -185,14 +174,13 @@ class GenreViewSet(ListCreateDestroyViewSet):
     lookup_field = 'slug'
 
 
-class TitleViewSet(viewsets.ModelViewSet):
+class TitleViewSet(RetrieveListCreateDestroyPartialUpdateViewSet):
     """
     ViewSet предоставляет CRUD действия с произведения, к которым пишут
     отзывы (определённый фильм, книга или песенка).
     """
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    http_method_names = ['get', 'post', 'patch', 'delete']
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
     permission_classes = [IsAdmin | IsSuperuser | ReadOnly]
