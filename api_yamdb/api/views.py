@@ -23,46 +23,42 @@ from reviews.models import Category, Genre, Review, Title, User
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny, ])
 def registrations(request):
-    if request.method == 'POST':
-        serializer = RegistrationsSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            email = serializer.data['email']
-            username = serializer.data['username']
-            user = get_object_or_404(User, username=username)
-            token = default_token_generator.make_token(user)
-            send_mail(
-                'Ваш confirmation_code',
-                f'Для пользователя {username} выпущен '
-                f'confirmation_code: {token}',
-                'from@example.com',
-                [f'{email}'],
-                fail_silently=False,
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer = RegistrationsSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.data['email']
+    username = serializer.data['username']
+    user, bool = User.objects.get_or_create(email=email, username=username)
+    token = default_token_generator.make_token(user)
+    send_mail(
+        'Ваш confirmation_code',
+        f'Для пользователя {username} выпущен '
+        f'confirmation_code: {token}',
+        'from@example.com',
+        [f'{email}'],
+        fail_silently=False,
+    )
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny, ])
 def get_token(request):
-    if request.method == 'POST':
-        serializer = GetTokenSerializer(data=request.data)
-        if serializer.is_valid():
-            user = get_object_or_404(
-                User,
-                username=serializer.data['username']
-            )
-            confirmation_code = request.data['confirmation_code']
-            if default_token_generator.check_token(
-                user,
-                confirmation_code
-            ) is True:
-                refresh = RefreshToken.for_user(user)
-                return Response(
-                    {'access': str(refresh.access_token)},
-                    status=status.HTTP_200_OK
-                )
+    serializer = GetTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User,
+        username=serializer.data['username']
+    )
+    confirmation_code = request.data['confirmation_code']
+    if default_token_generator.check_token(
+        user,
+        confirmation_code
+    ) is True:
+        refresh = RefreshToken.for_user(user)
+        return Response(
+            {'access': str(refresh.access_token)},
+            status=status.HTTP_200_OK
+        )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -86,10 +82,9 @@ class MeAPI(APIView):
         user = request.user
         user = get_object_or_404(User, username=user.username)
         serializer = MeSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

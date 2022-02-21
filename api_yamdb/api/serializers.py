@@ -4,7 +4,7 @@ from django.db.models import Avg
 from rest_framework.serializers import (
     CharField, EmailField, ModelSerializer, SerializerMethodField,
     StringRelatedField, ValidationError
-) 
+)
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
@@ -151,9 +151,9 @@ class TitleSerializer(ModelSerializer):
 class TitleCreateSerializer(ModelSerializer):
     """Сериализатор для создания/обновления произведения"""
     genre = SlugRelatedField(queryset=Genre.objects.all(),
-                                         slug_field='slug', many=True)
+                             slug_field='slug', many=True)
     category = SlugRelatedField(queryset=Category.objects.all(),
-                                            slug_field='slug')
+                                slug_field='slug')
 
     class Meta:
         model = Title
