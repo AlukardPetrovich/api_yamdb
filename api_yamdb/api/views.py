@@ -53,7 +53,7 @@ def get_token(request):
     if default_token_generator.check_token(
         user,
         confirmation_code
-    ) is True:
+    ):
         refresh = RefreshToken.for_user(user)
         return Response(
             {'access': str(refresh.access_token)},
