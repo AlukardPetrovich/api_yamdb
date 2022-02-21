@@ -1,23 +1,27 @@
+from email.policy import default
 import re
 
 from django.db.models import Avg
-from rest_framework import serializers
+from rest_framework.serializers import (
+    CharField, EmailField, ModelSerializer, SerializerMethodField,
+    StringRelatedField, ValidationError, HiddenField
+)
+
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueValidator
-
+from rest_framework import validators
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
-class RegistrationsSerializer(serializers.ModelSerializer):
+class RegistrationsSerializer(ModelSerializer):
     """Сериализатор для регистрацции нового пользователя"""
-    username = serializers.CharField(
+    username = CharField(
         max_length=150,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
-    email = serializers.EmailField(
+    email = EmailField(
         max_length=254,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
 
     class Meta:
@@ -26,10 +30,10 @@ class RegistrationsSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if data['username'] == 'me':
-            raise serializers.ValidationError(
+            raise ValidationError(
                 'Имя пользователя не может быть me')
         if not re.match(r'^[\w.@+-]', data['username']):
-            raise serializers.ValidationError(
+            raise ValidationError(
                 'Имя пользователя может содержать буквы, цифры, '
                 'символы ".", "@", "+", "-", " "'
             )
@@ -39,10 +43,10 @@ class RegistrationsSerializer(serializers.ModelSerializer):
         return User.objects.create(**validated_data)
 
 
-class GetTokenSerializer(serializers.ModelSerializer):
+class GetTokenSerializer(ModelSerializer):
     """Сериализатор получения авторизационного токена"""
-    username = serializers.CharField()
-    confirmation_code = serializers.SerializerMethodField()
+    username = CharField()
+    confirmation_code = SerializerMethodField()
 
     class Meta:
         model = User
@@ -52,11 +56,11 @@ class GetTokenSerializer(serializers.ModelSerializer):
         return
 
 
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(ModelSerializer):
     """Сериализатор для модели кастомного пользователя"""
-    email = serializers.EmailField(
+    email = EmailField(
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
+        validators=[validators.UniqueValidator(queryset=User.objects.all())]
     )
 
     class Meta:
@@ -65,9 +69,9 @@ class UserSerializer(serializers.ModelSerializer):
                   'role',)
 
 
-class MeSerializer(serializers.ModelSerializer):
-    username = serializers.StringRelatedField(read_only=True)
-    email = serializers.StringRelatedField(read_only=True)
+class MeSerializer(ModelSerializer):
+    username = StringRelatedField(read_only=True)
+    email = StringRelatedField(read_only=True)
 
     class Meta:
         model = User
@@ -76,19 +80,21 @@ class MeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = get_object_or_404(User, username=instance)
+        print(user)
         if user.role == 'user' and 'role' in validated_data:
-
+            print(user)
             validated_data.pop('role')
         return super().update(instance, validated_data)
 
 
-class ReviewSerializer(serializers.ModelSerializer):
+class ReviewSerializer(ModelSerializer):
     """Сериализатор модели Review."""
     author = SlugRelatedField(slug_field='username', read_only=True)
-    text = serializers.CharField(allow_blank=True, required=True)
+    text = CharField(allow_blank=True, required=True)
+    title = HiddenField(default='')
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date',)
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')
         model = Review
 
     def validate(self, data):
@@ -99,23 +105,21 @@ class ReviewSerializer(serializers.ModelSerializer):
             self.context['request'].method == 'POST'
             and Review.objects.filter(author=author, title=title).exists()
         ):
-            raise serializers.ValidationError(
+            raise ValidationError(
                 'Вы уже оставляли отзыв к данному произведению!'
             )
         return data
 
-
-class CommentSerializer(serializers.ModelSerializer):
+class CommentSerializer(ModelSerializer):
     """Сериализатор модели Comment."""
-    author = serializers.SlugRelatedField(read_only=True,
-                                          slug_field='username')
+    author = SlugRelatedField(read_only=True, slug_field='username')
 
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date',)
         model = Comment
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class CategorySerializer(ModelSerializer):
     """Сериализатор категорий произведений"""
 
     class Meta:
@@ -123,7 +127,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = ('name', 'slug',)
 
 
-class GenreSerializer(serializers.ModelSerializer):
+class GenreSerializer(ModelSerializer):
     """Сериализатор жанра произведения"""
 
     class Meta:
@@ -131,9 +135,9 @@ class GenreSerializer(serializers.ModelSerializer):
         fields = ('name', 'slug',)
 
 
-class TitleSerializer(serializers.ModelSerializer):
+class TitleSerializer(ModelSerializer):
     """Сериализатор списка произведений"""
-    rating = serializers.SerializerMethodField()
+    rating = SerializerMethodField()
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
 
@@ -146,12 +150,12 @@ class TitleSerializer(serializers.ModelSerializer):
         return obj.reviews.all().aggregate(Avg('score'))['score__avg']
 
 
-class TitleCreateSerializer(serializers.ModelSerializer):
+class TitleCreateSerializer(ModelSerializer):
     """Сериализатор для создания/обновления произведения"""
-    genre = serializers.SlugRelatedField(queryset=Genre.objects.all(),
-                                         slug_field='slug', many=True)
-    category = serializers.SlugRelatedField(queryset=Category.objects.all(),
-                                            slug_field='slug')
+    genre = SlugRelatedField(queryset=Genre.objects.all(),
+                             slug_field='slug', many=True)
+    category = SlugRelatedField(queryset=Category.objects.all(),
+                                slug_field='slug')
 
     class Meta:
         model = Title
