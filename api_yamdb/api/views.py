@@ -7,7 +7,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.conf import settings
 from api.filters import TitleFilter
 from api.permissions import (IsAdminOrOwnerOrSuperuserForUser,
                              IsAdminOrReadOnly,
@@ -33,7 +33,7 @@ def registrations(request):
         'Ваш confirmation_code',
         f'Для пользователя {username} выпущен '
         f'confirmation_code: {token}',
-        'from@example.com',
+        settings.EMAIL_SENDER,
         [f'{email}'],
         fail_silently=False,
     )
