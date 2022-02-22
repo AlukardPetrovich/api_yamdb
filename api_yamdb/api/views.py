@@ -72,28 +72,21 @@ class UserViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=False,
+        methods=['get', 'patch'],
         url_path='me',
         permission_classes=[permissions.IsAuthenticated, ]
     )
-    def get(self, request):
+    def me_endpoint(self, request):
         user = request.user
         user = get_object_or_404(User, username=user.username)
-        serializer = MeSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(
-        detail=False,
-        methods=['patch'],
-        url_path='me',
-        permission_classes=[permissions.IsAuthenticated, ]
-    )
-    def patch(self, request):
-        user = request.user
-        user = get_object_or_404(User, username=user.username)
-        serializer = MeSerializer(user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'GET':
+            serializer = MeSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        if request.method == 'PATCH':
+            serializer = MeSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ReviewViewSet(RetrieveListCreateDestroyPartialUpdateViewSet):
