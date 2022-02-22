@@ -28,7 +28,7 @@ def registrations(request):
     serializer.is_valid(raise_exception=True)
     email = serializer.data['email']
     username = serializer.data['username']
-    user, bool = User.objects.get_or_create(email=email, username=username)
+    user, _ = User.objects.get_or_create(email=email, username=username)
     token = default_token_generator.make_token(user)
     send_mail(
         'Ваш confirmation_code',
