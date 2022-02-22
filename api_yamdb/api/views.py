@@ -11,8 +11,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from api.custom_viewsets import (ListCreateDestroyViewSet,
                                  RetrieveListCreateDestroyPartialUpdateViewSet)
 from api.filters import TitleFilter
-from api.permissions import (IsAdmin, IsAdminOrOwnerOrSuperuserForUser,
-                             IsModerator, IsOwner, IsSuperuser, ReadOnly)
+from api.permissions import (IsAdmin, IsModerator, IsOwner, IsSuperuser,
+                             ReadOnly)
 from api.serializers import (CategorySerializer, CommentSerializer,
                              GenreSerializer, GetTokenSerializer, MeSerializer,
                              RegistrationsSerializer, ReviewSerializer,
@@ -67,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
     """ViewSet модели кастомного пользователя"""
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    permission_classes = [IsAdminOrOwnerOrSuperuserForUser, ]
+    permission_classes = [IsAdmin | IsSuperuser]
     lookup_field = 'username'
 
     @action(
