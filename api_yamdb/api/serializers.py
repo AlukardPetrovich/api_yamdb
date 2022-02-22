@@ -4,9 +4,8 @@ from django.db.models import Avg
 from rest_framework import validators
 from rest_framework.generics import get_object_or_404
 from rest_framework.relations import SlugRelatedField
-from rest_framework.serializers import (CharField, EmailField, HiddenField,
-                                        ModelSerializer, SerializerMethodField,
-                                        ValidationError)
+from rest_framework.serializers import (CharField, EmailField, ModelSerializer,
+                                        SerializerMethodField, ValidationError)
 
 from reviews.models import Category, Comment, Genre, Review, Title, User
 
@@ -78,7 +77,6 @@ class MeSerializer(ModelSerializer):
         user = get_object_or_404(User, username=instance)
         print(user)
         if user.role == 'user' and 'role' in validated_data:
-            print(user)
             validated_data.pop('role')
         return super().update(instance, validated_data)
 
@@ -87,7 +85,6 @@ class ReviewSerializer(ModelSerializer):
     """Сериализатор модели Review."""
     author = SlugRelatedField(slug_field='username', read_only=True)
     text = CharField(allow_blank=True, required=True)
-    title = HiddenField(default='')
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'title')

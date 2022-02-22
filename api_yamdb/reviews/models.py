@@ -34,14 +34,14 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        if self.role == 'admin':
-            return 'is_admin'
+        if User.ADMINISTRATOR:
+            return self.role == 'admin'
         return
 
     @property
     def is_moderator(self):
-        if self.role == 'moderator':
-            return 'is_moderator'
+        if User.MODERATOR:
+            return self.role == 'moderator'
         return
 
 
