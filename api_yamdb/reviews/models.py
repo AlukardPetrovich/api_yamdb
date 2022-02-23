@@ -34,15 +34,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        if User.ADMINISTRATOR:
-            return self.role == 'admin'
-        return
+        return self.role == User.ADMINISTRATOR
 
     @property
     def is_moderator(self):
-        if User.MODERATOR:
-            return self.role == 'moderator'
-        return
+        return self.role == User.MODERATOR
 
 
 class Category(models.Model):
