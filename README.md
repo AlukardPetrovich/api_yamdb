@@ -19,7 +19,7 @@
 
 2. Активировать виртуальное окружение
 
-*source venv/scripts/activate*
+*source venv/bin/activate*
 
 3. Установить зависимости
 
@@ -27,13 +27,13 @@
 
 4. Выполнить миграции
 
-*python manage.py makemigrations*
+*python api_yamdb/manage.py makemigrations*
 
-*python manage.py migrate*
+*python api_yamdb/manage.py migrate*
 
 5. Запустить проект
 
-*python manage.py runserver*
+*python api_yamdb/manage.py runserver*
 
 ---
 ### Доступные методы API запросов:
