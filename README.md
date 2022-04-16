@@ -38,6 +38,7 @@ Python, Django, Django Rest Framework, JWT, Swagger
 
 5. Запустить проект
 
+
 *python3 api_yamdb/manage.py runserver*
 
 ---
