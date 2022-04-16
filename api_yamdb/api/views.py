@@ -26,7 +26,7 @@ from reviews.models import Category, Genre, Review, Title, User
 def registrations(request):
     """
     View-функция для регистрации новых пользователей
-    и запроса кода подтверждения 
+    и запроса кода подтверждения
     """
     serializer = RegistrationsSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
