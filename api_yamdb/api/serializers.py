@@ -11,7 +11,7 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class RegistrationsSerializer(ModelSerializer):
-    """Сериализатор для регистрацции нов новых пользователей"""
+    """Сериализатор для регистрацции новых пользователей"""
     username = CharField(
         max_length=150,
         validators=[validators.UniqueValidator(queryset=User.objects.all())]
