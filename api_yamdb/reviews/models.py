@@ -6,7 +6,7 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Модель кастомного пользователя"""
+    """Кастомная модель пользователя"""
 
     AUTHENTICATED = 'user'
     MODERATOR = 'moderator'
