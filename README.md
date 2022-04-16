@@ -32,6 +32,7 @@ Python, Django, Django Rest Framework, JWT, Swagger
 
 4. Выполнить миграции
 
+
 *python3 api_yamdb/manage.py makemigrations*
 
 *python3 api_yamdb/manage.py migrate*
