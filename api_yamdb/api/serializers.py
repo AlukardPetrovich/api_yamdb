@@ -11,7 +11,7 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class RegistrationsSerializer(ModelSerializer):
-    """Сериализатор для регистрацции нового пользователя"""
+    """Сериализатор для регистрацции нов новых пользователей"""
     username = CharField(
         max_length=150,
         validators=[validators.UniqueValidator(queryset=User.objects.all())]
@@ -41,7 +41,7 @@ class RegistrationsSerializer(ModelSerializer):
 
 
 class GetTokenSerializer(ModelSerializer):
-    """Сериализатор получения авторизационного токена"""
+    """Сериализатор получения токена авторизации"""
     username = CharField()
     confirmation_code = SerializerMethodField()
 
@@ -54,7 +54,7 @@ class GetTokenSerializer(ModelSerializer):
 
 
 class UserSerializer(ModelSerializer):
-    """Сериализатор для модели кастомного пользователя"""
+    """Сериализатор для кастомной модели пользователя"""
     email = EmailField(
         required=True,
         validators=[validators.UniqueValidator(queryset=User.objects.all())]
@@ -67,6 +67,7 @@ class UserSerializer(ModelSerializer):
 
 
 class MeSerializer(ModelSerializer):
+    """Сериализатор для работы с эндпойнтом /api/v1/users/me/"""
 
     class Meta:
         model = User

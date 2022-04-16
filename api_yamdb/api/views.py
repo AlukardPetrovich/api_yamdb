@@ -24,6 +24,10 @@ from reviews.models import Category, Genre, Review, Title, User
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny, ])
 def registrations(request):
+    """
+    View-функция для регистрации новых пользователей
+    и запроса кода подтверждения 
+    """
     serializer = RegistrationsSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     email = serializer.data['email']
@@ -44,6 +48,10 @@ def registrations(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny, ])
 def get_token(request):
+    """
+    View-функция для получения токена зарегистрированным пользователем
+    с использованием кода подтверждения
+    """
     serializer = GetTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     user = get_object_or_404(

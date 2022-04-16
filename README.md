@@ -11,11 +11,16 @@
 * Получение/добавление жанров, категорий и наименований произведений
 
 ---
+
+### Стэк технологий:
+Python, Django, Django Rest Framework, JWT, Swagger
+
+---
 ### Установка:
 
 1. Создать виртуальное окружение
 
-*python -m venv venv*
+*python3 -m venv venv*
 
 2. Активировать виртуальное окружение
 
@@ -27,13 +32,15 @@
 
 4. Выполнить миграции
 
-*python api_yamdb/manage.py makemigrations*
 
-*python api_yamdb/manage.py migrate*
+*python3 api_yamdb/manage.py makemigrations*
+
+*python3 api_yamdb/manage.py migrate*
 
 5. Запустить проект
 
-*python api_yamdb/manage.py runserver*
+
+*python3 api_yamdb/manage.py runserver*
 
 ---
 ### Доступные методы API запросов:
